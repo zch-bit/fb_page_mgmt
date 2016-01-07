@@ -2,10 +2,10 @@
 Facebook Page Management System using facebook API and JavaScript.
 
 Basic Function for Facebook Post:
-1). Login with facebook ID and password.
-2). List all the posts of a page, including published and unpublished posts(ads).
-3). Make new posts, both published or ubpublished posts.
-4). Logout
+<p>1). Login with facebook ID and password.</p>
+<p>2). List all the posts of a page, including published and unpublished posts(ads).</p>
+<p>3). Make new posts, both published or ubpublished posts.</p>
+<p>4). Logout</p>
 
 Reference:
 <p>Facebook api: https://developers.facebook.com/</p>
