@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Facebook Page management</title>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+<div id="tips" class="alert alert-info alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<nav class="nav nav-tabs" id="nav">
+
+    <button id="login_button" class="btn btn-primary btn-md" onclick="myFacebookLogin()">Login</button>
+    <button class="btn btn-primary btn-md" onclick="getAllPosts(1)">Get all Post</button>
+    <button class="btn btn-primary btn-md" data-toggle="modal" data-target="#newPostModalNorm">New Post</button>
+    <button class="btn btn-primary btn-md" onclick="logOut()">Log out</button>
+
+</nav>
+<div id="headtitle"><br/></div>
+<div id="posts"></div>
+<!-- Modal -->
+<div class="modal fade" id="newPostModalNorm" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    New Post
+                </h4>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form role="form" id="newPostForm">
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <input type="text" class="form-control"
+                               name="message" id="message"
+                               placeholder="The main body of the post, otherwise called the status message."/>
+                    </div>
+                    <div class="form-group">
+                        <label for="link">Link</label>
+                        <input type="text" class="form-control" id="link"
+                               name="link" placeholder="The URL of a link to attach to the post."/>
+                    </div>
+                    <div> Additional fields associated with link are shown below.</div>
+                    <div class="form-group">
+                        <label for="picture">Picture</label>
+                        <input type="text" class="form-control"
+                               name="picture" id="picture"
+                               placeholder="Determines the preview image associated with the link."/>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control"
+                               id="name" name="name"
+                               placeholder="Overwrites the title of the link preview."/>
+                    </div>
+                    <div class="form-group">
+                        <label for="caption">Caption</label>
+                        <input type="text" class="form-control"
+                               id="caption" name="caption"
+                               placeholder="Overwrites the caption under the title in the link preview."/>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <input type="text" class="form-control"
+                               id="description" name="description"
+                               placeholder="Overwrites the description in the link preview."/>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input name="published" type="checkbox" checked/> Published (if not check, the post will be
+                            unpublished.)
+                        </label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default"
+                                data-dismiss="modal">
+                            Close
+                        </button>
+                        <button type="submit" id="submitPost" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+
+    var gParam = {};
+    var gPage_token = '';
+    var gPage_name = '';
+    var gPage_id = '';
+    var welcome = "<h3>Welcome, </h3>"
+            + "<h5>"+'Page Management System Instruction:'+"</h5>"
+            + "<p>"+'1. Login in with your Facebook User ID and password if no account logged in;'+"</p>"
+            +"<p>2. Click 'Get all Post' if you need to see all posts;</p>"
+            + "<p> 3. Click 'New Post' if you need to make new post. </p>"
+            + "<p>4. Click 'Log Out' to logout your account.</p>";
+
+    window.fbAsyncInit = function () {
+        /*
+        if(window.localStorage){
+            console.log('This browser supports localStorage.');
+        }else{
+            console.log('This browser does NOT support localStorage.');
+        }*/
+
+        FB.init({
+            appId: '225911627741131',
+            xfbml: true,
+            version: 'v2.5'
+        });
+        //myinterval;
+        $('#posts').html(welcome);
+        $('#tips').html('');
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                FB.api('/me', function (response) {
+                    console.log('Good to see you, ' + response.name + '.');
+                    $('#tips').append("<strong>Good to see you: " + response.name + "</strong>");
+                });
+            }else{
+                $('#tips').html('No account logged in.');
+            }
+
+            getAccessToken();
+            //getAllPosts();
+        });
+
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    // Only works after `FB.init` is called
+    function myFacebookLogin() {
+        FB.login(function () {
+            // Note: The call will only work if you accept the permission request
+            var access_token = FB.getAuthResponse()['accessToken'];
+            FB.api('/me', function (response) {
+                $('#tips').html("<strong>Good to see you: " + response.name + "</strong>");
+                $('#posts').html('');
+                $('#posts').html(welcome);
+                location.reload();
+                //$('#login_button').html(response.name)
+            });
+
+            //if login succeed, post a message to the page.
+            //FB.api('/me/feed', 'post', {message: 'Hello, world!'});
+        }, {scope: 'manage_pages,read_insights, publish_pages, publish_actions'});
+
+    }
+
+    function logOut(){
+        FB.getLoginStatus(function(response) {
+            //console.log("Status:", response);
+            if (response.status === 'connected') {
+                $('#tips').html('<p>Logged out.</p>');
+                $('#posts').html('');
+                $('#posts').html(welcome);
+                clearInterval(myinterval);
+                FB.logout(function(response) {
+                    // this part just clears the $_SESSION var
+                    // replace with your own code
+                    $.post("/logout").done(function() {
+                        $('#tips').html('<p>Logged out.</p>');
+                    });
+                });
+            }
+        });
+    }
+
+    function getAccessToken() {
+        //location.reload();
+        //get the access token and page_id of the page.
+        FB.api(
+                '/me/accounts',
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                        gPage_token = response['data'][0]['access_token'];
+                        gPage_name = response['data'][0]['name'];
+                        gPage_id = response['data'][0]['id'];
+                        //var myinterval = setInterval(function(){ getAllPosts(0);console.log("Updating");}, 3000);
+                        console.log("gPage_id",gPage_id);
+                        //$('#tips').append(', Your Page: ',gPage_name);
+                    } else {
+                        return 0;
+                    }
+                }
+        );
+    }
+
+    function newPost(gPage_id,params) {
+
+        var access_token = FB.getAuthResponse()['accessToken'];
+        console.log('Access Token = ' + access_token);
+        /*var params = {};
+         params['message'] = 'Facebook API Test, should posted to the page.';
+         params['application'] = 'Facebook Page Management';
+         params['name'] = 'Test Posting';
+         params['description'] = 'This is a api call testing, wonderful !';
+         params['link'] = 'http://www.zxchen.com';
+         params['is_published'] = true;
+         params['picture'] = 'http://zxchen.com/wp-content/uploads/2015/01/cropped-15600455633_568556eb5c_o.jpg';
+         params['caption'] = 'Just my blog address';
+         */
+        params['access_token'] = gPage_token;
+        FB.api('/'+gPage_id+'/feed', 'post', params, function (response) {
+            if (!response || response.error) {
+                alert('Error occurred');
+            } else {
+                alert('A new post has been posted.');
+            }
+        });
+    }
+
+    function getPostViews(post_id) {
+        // Get the number of people who have seen any content associated with your Page
+
+        var post_ips_uni;
+        console.log("getPostViews_post_id: ", post_id);
+        var address = '/' + post_id + '/insights/post_impressions_unique';
+        FB.api(
+                address,
+                console.log('getPostViews_Address is:', address),
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                        post_ips_uni = response['data'][0]['values'][0]['value'];
+                        console.log("getPostViews_post_view", post_ips_uni);
+                    }
+                    return post_ips_uni;
+                }
+        );
+    }
+
+    function showPost(info){
+        setTimeout(function(){
+            //console.log("info content:");
+            //console.log(info);
+            var item = "";
+            for (var i = 0; i < info.length; i++ ) {
+                item += '<div class="panel panel-default"><div class="panel-heading">';
+                item += '<h6 class="panel-title">'+'Post '+ (i+1) + '</h6></div>';
+                item += '<div class="panel-body">';
+                for (var key in info[i]) {
+                    if (info[i].hasOwnProperty(key)) {
+                        //console.log("key - value", key, info[i][key]);
+                        if(key == 'picture'){
+                            if(info[i][key] != 'No image.'){
+                                item += '<strong>' + key + '</strong>' + ': '
+                                        + '<a href=' + info[i][key]+'>'
+                                        + info[i][key] + "target='_blank'</a>"
+                                        + '<br/>';
+                            }else{
+                                item += '<strong>' + key + '</strong>' + ': ' + info[i][key] + '<br/>';
+                            }
+                        }else {
+                            item += '<strong>' + key + '</strong>' + ': ' + info[i][key] + '<br/>';
+                        }
+                        //item += '<strong>' + key + '</strong>' + ': ' + info[i][key] + '<br/>';
+                    }
+                }
+                item += '</div></div>';
+            }
+            $('#posts').append(item);
+            item = '';  // clear item once it was append to posts.
+        }, 300);//Wait for 200 ms.
+    }
+
+    function getAllPosts(showBool) {
+        if(showBool) {
+            $('#posts').html('');
+        }
+        var response = {};
+        var info = [];
+        var page_id = gPage_id;
+        FB.api(
+                "/"+page_id+"/promotable_posts",
+                function (response) {
+                    if (response && response != 'undefined' && !response.error) {
+                        /* handle the result */
+
+                        $.each(response['data'], function (index, value) {
+                            //localStorage.info = response['data'];
+                            info = response['data'];
+                            var post_id = response['data'][index]['id'];
+                            var post_ips_uni;
+                            var image_address;
+                            var address = '/' + post_id + '/insights/post_impressions_unique';
+                            var address_img = '/' + post_id + '?fields=picture';
+                            FB.api(
+                                    address_img,
+                                    'GET',
+                                    function (img_response) {
+                                        if (img_response && !img_response.error) {
+                                            /* handle the result */
+                                            if(img_response.hasOwnProperty('picture')) {
+                                                image_address = img_response['picture']; //post_views
+                                                info[index]['picture'] = image_address;
+                                            }else {
+                                                info[index]['picture'] = 'No image.';
+                                            }
+                                        }
+                                    }
+                            );
+
+                            FB.api(
+                                    address,
+                                    'GET',
+                                    function (res) {
+                                        if (res && !res.error) {
+                                            /* handle the result */
+                                            post_ips_uni = res['data'][0]['values'][0]['value']; //post_views
+                                            info[index]['views'] = post_ips_uni;
+                                        }
+                                    }
+                            );
+                        });
+                        //render info to the page.
+                        if(showBool) {
+                            showPost(info);
+                        }
+                    }
+                }
+        );
+    }
+
+    $(function(){
+        $('#newPostForm').on('submit', function(e){
+            e.preventDefault();
+            console.log("published");
+            console.log( $("[name='published']").prop('checked'));
+
+            var params = {};
+            params.published = $("[name='published']").prop('checked');
+            params.message =  $("[name='message']").val();
+            params.name = $("[name='name']").val();
+            params.application =  $("[name='application']").val();
+            params.description =  $("[name='description']").val();
+            params.link =  $("[name='link']").val();
+            params.picture =  $("[name='picture']").val();
+            params.caption =  $("[name='caption']").val();
+
+            newPost(gPage_id, params);
+            $('#newPostModalNorm').modal('hide');
+        });
+    });
+</script>
+</body>
+
+</html>
