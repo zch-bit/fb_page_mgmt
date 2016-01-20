@@ -113,19 +113,11 @@
             + "<p>4. Click 'Log Out' to logout your account.</p>";
 
     window.fbAsyncInit = function () {
-        /*
-        if(window.localStorage){
-            console.log('This browser supports localStorage.');
-        }else{
-            console.log('This browser does NOT support localStorage.');
-        }*/
-
         FB.init({
             appId: '225911627741131',
             xfbml: true,
             version: 'v2.5'
         });
-        //myinterval;
         $('#posts').html(welcome);
         $('#tips').html('');
         FB.getLoginStatus(function (response) {
@@ -139,7 +131,6 @@
             }
 
             getAccessToken();
-            //getAllPosts();
         });
 
     };
@@ -155,7 +146,6 @@
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
 
-    // Only works after `FB.init` is called
     function myFacebookLogin() {
         FB.login(function () {
             // Note: The call will only work if you accept the permission request
@@ -165,26 +155,20 @@
                 $('#posts').html('');
                 $('#posts').html(welcome);
                 location.reload();
-                //$('#login_button').html(response.name)
             });
 
-            //if login succeed, post a message to the page.
-            //FB.api('/me/feed', 'post', {message: 'Hello, world!'});
         }, {scope: 'manage_pages,read_insights, publish_pages, publish_actions'});
 
     }
 
     function logOut(){
         FB.getLoginStatus(function(response) {
-            //console.log("Status:", response);
             if (response.status === 'connected') {
                 $('#tips').html('<p>Logged out.</p>');
                 $('#posts').html('');
                 $('#posts').html(welcome);
                 clearInterval(myinterval);
                 FB.logout(function(response) {
-                    // this part just clears the $_SESSION var
-                    // replace with your own code
                     $.post("/logout").done(function() {
                         $('#tips').html('<p>Logged out.</p>');
                     });
@@ -194,8 +178,6 @@
     }
 
     function getAccessToken() {
-        //location.reload();
-        //get the access token and page_id of the page.
         FB.api(
                 '/me/accounts',
                 function (response) {
@@ -204,9 +186,7 @@
                         gPage_token = response['data'][0]['access_token'];
                         gPage_name = response['data'][0]['name'];
                         gPage_id = response['data'][0]['id'];
-                        //var myinterval = setInterval(function(){ getAllPosts(0);console.log("Updating");}, 3000);
                         console.log("gPage_id",gPage_id);
-                        //$('#tips').append(', Your Page: ',gPage_name);
                     } else {
                         return 0;
                     }
@@ -218,16 +198,6 @@
 
         var access_token = FB.getAuthResponse()['accessToken'];
         console.log('Access Token = ' + access_token);
-        /*var params = {};
-         params['message'] = 'Facebook API Test, should posted to the page.';
-         params['application'] = 'Facebook Page Management';
-         params['name'] = 'Test Posting';
-         params['description'] = 'This is a api call testing, wonderful !';
-         params['link'] = 'http://www.zxchen.com';
-         params['is_published'] = true;
-         params['picture'] = 'http://zxchen.com/wp-content/uploads/2015/01/cropped-15600455633_568556eb5c_o.jpg';
-         params['caption'] = 'Just my blog address';
-         */
         params['access_token'] = gPage_token;
         FB.api('/'+gPage_id+'/feed', 'post', params, function (response) {
             if (!response || response.error) {
@@ -240,7 +210,6 @@
 
     function getPostViews(post_id) {
         // Get the number of people who have seen any content associated with your Page
-
         var post_ips_uni;
         console.log("getPostViews_post_id: ", post_id);
         var address = '/' + post_id + '/insights/post_impressions_unique';
@@ -260,8 +229,6 @@
 
     function showPost(info){
         setTimeout(function(){
-            //console.log("info content:");
-            //console.log(info);
             var item = "";
             for (var i = 0; i < info.length; i++ ) {
                 item += '<div class="panel panel-default"><div class="panel-heading">';
@@ -269,7 +236,6 @@
                 item += '<div class="panel-body">';
                 for (var key in info[i]) {
                     if (info[i].hasOwnProperty(key)) {
-                        //console.log("key - value", key, info[i][key]);
                         if(key == 'picture'){
                             if(info[i][key] != 'No image.'){
                                 item += '<strong>' + key + '</strong>' + ': '
@@ -282,14 +248,13 @@
                         }else {
                             item += '<strong>' + key + '</strong>' + ': ' + info[i][key] + '<br/>';
                         }
-                        //item += '<strong>' + key + '</strong>' + ': ' + info[i][key] + '<br/>';
                     }
                 }
                 item += '</div></div>';
             }
             $('#posts').append(item);
-            item = '';  // clear item once it was append to posts.
-        }, 200);//Wait for 200 ms.
+            item = ''; 
+        }, 200);
     }
 
     function getAllPosts(showBool) {
@@ -304,9 +269,7 @@
                 function (response) {
                     if (response && response != 'undefined' && !response.error) {
                         /* handle the result */
-
                         $.each(response['data'], function (index, value) {
-                            //localStorage.info = response['data'];
                             info = response['data'];
                             var post_id = response['data'][index]['id'];
                             var post_ips_uni;
