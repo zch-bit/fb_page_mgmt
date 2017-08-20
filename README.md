@@ -1,6 +1,6 @@
 ### fb_page_mgmt
 
-Facebook Page Management System using Facebook API and JavaScript.
+Facebook Page Management System using Facebook API and JavaScript in HTML and Javascript.
 
 ### Basic Functions for Facebook Post:
 <p>1). Login with Facebook ID and password.</p>
